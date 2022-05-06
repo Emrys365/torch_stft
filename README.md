@@ -5,6 +5,8 @@ This repository provides three variants of STFT/iSTFT implementations based on P
 * `matmul`: matrix multiplication based implementation
 * `conv`: Conv1D based implementation
 
+> `fft` based implementation is the fastest among the three, but is still a bit slower than the native implementation in PyTorch.
+
 All implementations support inputs with and without a batch dimension.
 
 ## Usage
