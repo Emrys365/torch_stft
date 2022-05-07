@@ -9,6 +9,18 @@ This repository provides three variants of STFT/iSTFT implementations based on P
 
 All implementations support inputs with and without a batch dimension.
 
+## Install
+
+```bash
+# install via git
+python -m pip install git+https://github.com/Emrys365/torch_stft
+
+# install from source
+git clone git@github.com:Emrys365/torch_stft.git
+cd torch_stft
+python -m pip install -e .
+```
+
 ## Usage
 
 ```python
@@ -39,3 +51,13 @@ assert torch.allclose(signal, signal_recon, atol=1e-6)
 ```bash
 python -m pytest tests/
 ```
+
+## References
+
+[1] https://en.wikipedia.org/wiki/DFT_matrix
+
+[2] https://www.funcwj.cn/2020/04/10/conv1d-ops/
+
+[3] https://librosa.org/doc/latest/_modules/librosa/core/spectrum.html#stft
+
+[4] https://github.com/pytorch/audio/blob/2ebbbf511fb1e6c47b59fd32ad7e66023fa0dff1/torchaudio/functional.py#L44
