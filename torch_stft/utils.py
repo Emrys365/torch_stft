@@ -55,7 +55,7 @@ def pad_center(data, size, dim=-1, **kwargs):
 
     lengths = [(0, 0)] * data.dim()
     lengths[dim] = (lpad, int(size - n - lpad))
-    lengths = tuple(chain(*lengths))
+    lengths = tuple(chain(*reversed(lengths)))
 
     if lpad < 0:
         raise ValueError(
