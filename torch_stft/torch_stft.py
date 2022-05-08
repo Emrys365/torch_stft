@@ -268,8 +268,19 @@ class ShortTimeFourierTransform(torch.nn.Module):
         else:
             window = self.dft_window.to(dtype=dtype)
 
+        # For efficiency, trim STFT frames according to signal length if available
+        if length:
+            if self.center:
+                padded_length = length + self.n_fft
+            else:
+                padded_length = length
+            padded_nframe = math.ceil(padded_length / self.hop_length)
+            n_frame = min(stft_matrix.size(2), padded_nframe)
+        else:
+            n_frame = stft_matrix.size(2)
+
         # (channel, n_frame, fft_size, 2)
-        stft_matrix = stft_matrix.transpose(1, 2)
+        stft_matrix = stft_matrix[:, :, :n_frame].transpose(1, 2)
 
         if self.impl == "fft":
             # (channel, n_frame, n_fft)
