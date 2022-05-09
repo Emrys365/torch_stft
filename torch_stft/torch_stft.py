@@ -21,10 +21,11 @@ import warnings
 import torch
 import torch.nn.functional as F
 
+from .utils import fix_length
 from .utils import frame
 from .utils import get_dft_bases
 from .utils import get_window
-from .utils import pad_center
+from .utils import pad_to_size
 from .utils import tiny
 
 
@@ -107,7 +108,7 @@ class ShortTimeFourierTransform(torch.nn.Module):
         # Pad the window out to n_fft size
         fft_window = get_window(window, win_length, periodic=True)
         if fft_window is not None:
-            fft_window = pad_center(fft_window, n_fft)
+            fft_window = pad_to_size(fft_window, n_fft, pad_type="center")
             self.normalized_scale = float(fft_window.pow(2).sum().sqrt())
         else:
             self.normalized_scale = math.sqrt(n_fft)
@@ -264,7 +265,7 @@ class ShortTimeFourierTransform(torch.nn.Module):
 
         if self.dft_window is None:
             window = torch.ones(self.win_length, device=device, dtype=dtype)
-            window = pad_center(window, self.n_fft)
+            window = pad_to_size(window, self.n_fft, pad_type="center")
         else:
             window = self.dft_window.to(dtype=dtype)
 
@@ -364,7 +365,7 @@ class ShortTimeFourierTransform(torch.nn.Module):
         # y = (y / window_envelop).squeeze(1)
         approx_nonzero_indices = window_envelop > tiny(window_envelop)
         y[:, :, approx_nonzero_indices[0, 0]] /= window_envelop[approx_nonzero_indices]
-        y = y.squeeze(1)
+        y = fix_length(y.squeeze(1), length)
         return y
 
     def _conv_stft(self, input, fft_window):

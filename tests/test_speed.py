@@ -11,6 +11,9 @@ from torch_stft import ShortTimeFourierTransform
 from torch_stft.utils import get_window
 
 
+is_cuda_available = torch.cuda.is_available()
+
+
 def test_speed(func, *args, num_runs=100, **kwargs):
     ret = []
     for _ in range(num_runs):
@@ -60,9 +63,14 @@ def test_stft_speed(
             onesided=onesided,
             impl=impl,
         )
+        if is_cuda_available:
+            stft.cuda()
+            x = x.cuda()
         elapsed_time[impl] = test_speed(stft, x, num_runs=num_runs)[0]
 
     win = get_window(window, win_length, periodic=True)
+    if is_cuda_available:
+        win = win.cuda()
     elapsed_time["native"] = test_speed(
         partial(
             torch.stft,
@@ -80,16 +88,30 @@ def test_stft_speed(
     )[0]
 
     if elapsed_time["native"] > elapsed_time["fft"]:
-        info = "'fft' based implementation ({:.1f} ms) is faster than "
+        info = "'fft' based implementation ({:.4f} ms) is faster than "
         "`torch.stft` ({:.1f} ms)"
         warnings.warn(info.format(elapsed_time["fft"], elapsed_time["native"]))
+    elif is_cuda_available:
+        if elapsed_time["conv"] > elapsed_time["matmul"]:
+            info = (
+                "'matmul' based implementation ({:.4f} ms) is faster than "
+                "`conv` based one ({:.4f} ms)"
+            )
+            warnings.warn(info.format(elapsed_time["matmul"], elapsed_time["conv"]))
+        else:
+            assert (
+                elapsed_time["native"]
+                < elapsed_time["fft"]
+                < elapsed_time["conv"]
+                < elapsed_time["matmul"]
+            ), elapsed_time
     else:
         assert (
             elapsed_time["native"]
             < elapsed_time["fft"]
             < elapsed_time["matmul"]
             < elapsed_time["conv"]
-        )
+        ), elapsed_time
 
 
 @pytest.mark.parametrize(
@@ -127,11 +149,16 @@ def test_istft_speed(
             onesided=onesided,
             impl=impl,
         )
+        if is_cuda_available:
+            stft.cuda()
+            x = x.cuda()
         spec = stft(x)
         istft = partial(stft.inverse, length=len(x))
         elapsed_time[impl] = test_speed(istft, spec, num_runs=num_runs)[0]
 
     win = get_window(window, win_length, periodic=True)
+    if is_cuda_available:
+        win = win.cuda()
     spec = torch.stft(
         x,
         n_fft=n_fft,
@@ -159,13 +186,27 @@ def test_istft_speed(
     )[0]
 
     if elapsed_time["native"] > elapsed_time["fft"]:
-        info = "'fft' based implementation ({:.1f} ms) is faster than "
+        info = "'fft' based implementation ({:.4f} ms) is faster than "
         "`torch.istft` ({:.1f} ms)"
         warnings.warn(info.format(elapsed_time["fft"], elapsed_time["native"]))
+    elif is_cuda_available:
+        if elapsed_time["conv"] > elapsed_time["matmul"]:
+            info = (
+                "'matmul' based implementation ({:.4f} ms) is faster than "
+                "`conv` based one ({:.4f} ms)"
+            )
+            warnings.warn(info.format(elapsed_time["matmul"], elapsed_time["conv"]))
+        else:
+            assert (
+                elapsed_time["native"]
+                < elapsed_time["fft"]
+                < elapsed_time["conv"]
+                < elapsed_time["matmul"]
+            ), elapsed_time
     else:
         assert (
             elapsed_time["native"]
             < elapsed_time["fft"]
             < elapsed_time["matmul"]
             < elapsed_time["conv"]
-        )
+        ), elapsed_time

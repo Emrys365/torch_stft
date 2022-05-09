@@ -44,20 +44,27 @@ def get_window(window, win_length, **kwargs):
         raise ValueError(f"Invalid window specification: {window}")
 
 
-def pad_center(data, size, dim=-1, **kwargs):
+def pad_to_size(data, size, dim=-1, pad_type="center", **kwargs):
     kwargs.setdefault("mode", "constant")
+    assert pad_type in ("left", "center", "right"), pad_type
 
     n = data.size(dim)
     if n == size:
         return data
 
-    lpad = int((size - n) // 2)
+    pad = size - n
 
     lengths = [(0, 0)] * data.dim()
-    lengths[dim] = (lpad, int(size - n - lpad))
+    if pad_type == "left":
+        lengths[dim] = (pad, 0)
+    elif pad_type == "center":
+        lpad = int(pad // 2)
+        lengths[dim] = (lpad, int(size - n - lpad))
+    elif pad_type == "right":
+        lengths[dim] = (0, pad)
     lengths = tuple(chain(*reversed(lengths)))
 
-    if lpad < 0:
+    if pad < 0:
         raise ValueError(
             ("Target size ({:d}) must be " "at least input size ({:d})").format(size, n)
         )
@@ -127,3 +134,17 @@ def tiny(x):
         dtype = torch.float32
 
     return torch.finfo(dtype).tiny
+
+
+def fix_length(data, size, dim=-1):
+    n = data.size(dim)
+
+    if n > size:
+        slices = [slice(None)] * data.ndim
+        slices[dim] = slice(0, size)
+        return data[tuple(slices)]
+
+    elif n < size:
+        return pad_to_size(data, size, dim=dim, pad_type="right")
+
+    return data
