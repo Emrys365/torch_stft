@@ -89,15 +89,15 @@ def frame(x, frame_length, hop_length, dim=-1):
         raise ValueError("Invalid hop_length: {:d}".format(hop_length))
 
     n_frames = 1 + (x.size(dim) - frame_length) // hop_length
-    strides = torch.as_tensor(x.stride())
+    strides = list(x.stride())
 
     if dim == -1 or dim == x.dim() - 1:
         shape = list(x.shape[:-1]) + [frame_length, n_frames]
-        strides = list(strides) + [hop_length]
+        strides = strides + [hop_length]
 
     elif dim == 0:
         shape = [n_frames, frame_length] + list(x.shape)[1:]
-        strides = [hop_length] + list(strides)
+        strides = [hop_length * strides[0]] + strides
 
     else:
         raise ValueError("Frame dim={} must be either 0 or -1".format(dim))
