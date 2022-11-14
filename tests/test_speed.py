@@ -88,8 +88,10 @@ def test_stft_speed(
     )[0]
 
     if elapsed_time["native"] > elapsed_time["fft"]:
-        info = "'fft' based implementation ({:.4f} ms) is faster than "
-        "`torch.stft` ({:.1f} ms)"
+        info = (
+            "'fft' based implementation ({:.4f} ms) is faster than "
+            "`torch.stft` ({:.1f} ms)"
+        )
         warnings.warn(info.format(elapsed_time["fft"], elapsed_time["native"]))
     elif is_cuda_available:
         if elapsed_time["conv"] > elapsed_time["matmul"]:
@@ -186,8 +188,10 @@ def test_istft_speed(
     )[0]
 
     if elapsed_time["native"] > elapsed_time["fft"]:
-        info = "'fft' based implementation ({:.4f} ms) is faster than "
-        "`torch.istft` ({:.1f} ms)"
+        info = (
+            "'fft' based implementation ({:.4f} ms) is faster than "
+            "`torch.istft` ({:.1f} ms)"
+        )
         warnings.warn(info.format(elapsed_time["fft"], elapsed_time["native"]))
     elif is_cuda_available:
         if elapsed_time["conv"] > elapsed_time["matmul"]:
