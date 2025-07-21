@@ -435,7 +435,7 @@ class ShortTimeFourierTransform(torch.nn.Module):
         else:
             y /= self.n_fft
 
-        # Ref: https://www.funcwj.cn/2020/04/10/conv1d-ops/
+        # Ref: https://funcwj.github.io/2020/04/10/conv1d-ops/
         win = torch.repeat_interleave(
             window.view(1, -1, 1), conv_input.size(-1), dim=-1
         )
